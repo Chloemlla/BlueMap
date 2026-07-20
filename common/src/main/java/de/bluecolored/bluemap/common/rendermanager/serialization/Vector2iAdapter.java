@@ -22,43 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package de.bluecolored.bluemap.common.web;
+package de.bluecolored.bluemap.common.rendermanager.serialization;
 
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
+import com.flowpowered.math.vector.Vector2i;
+import de.bluecolored.bluemap.common.BlueMapService;
+import de.bluecolored.bluemap.core.map.BmMap;
+import de.bluecolored.bluenbt.NBTReader;
+import de.bluecolored.bluenbt.NBTWriter;
+import de.bluecolored.bluenbt.TagType;
+import de.bluecolored.bluenbt.TypeAdapter;
+import lombok.RequiredArgsConstructor;
 
-public class CachedRateLimitDataSupplier implements Supplier<String> {
+import java.io.IOException;
 
-    private final ReentrantLock lock = new ReentrantLock();
+public class Vector2iAdapter implements TypeAdapter<Vector2i> {
 
-    private final Supplier<String> delegate;
-    private final long rateLimitMillis;
-
-    private long updateTime = -1;
-    private String data = null;
-
-    public CachedRateLimitDataSupplier(Supplier<String> delegate, long rateLimitMillis) {
-        this.delegate = delegate;
-        this.rateLimitMillis = rateLimitMillis;
+    @Override
+    public Vector2i read(NBTReader reader) throws IOException {
+        reader.beginList();
+        int x = reader.nextInt();
+        int y = reader.nextInt();
+        reader.endList();
+        return new Vector2i(x, y);
     }
 
     @Override
-    public String get() {
-        update();
-        return data;
+    public void write(Vector2i value, NBTWriter writer) throws IOException {
+        writer.beginList(2);
+        writer.value(value.getX());
+        writer.value(value.getY());
+        writer.endList();
     }
 
-    protected void update() {
-        if (lock.tryLock()) {
-            try {
-                long now = System.currentTimeMillis();
-                if (data != null && now < updateTime + this.rateLimitMillis) return;
-                this.data = delegate.get();
-                this.updateTime = now;
-            } finally {
-                lock.unlock();
-            }
-        }
+    @Override
+    public TagType type() {
+        return TagType.LIST;
     }
 
 }

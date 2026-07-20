@@ -35,11 +35,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -79,6 +75,8 @@ public class MapUpdatePreparationTask implements MapRenderTask {
 
         // do work
         Collection<Vector2i> regions = findRegions();
+        if (regions.isEmpty()) return;
+
         Collection<RenderTask> tasks = createTasks(regions);
         MapUpdateTask mapUpdateTask = new MapUpdateTask(map, tasks);
 
@@ -104,10 +102,10 @@ public class MapUpdatePreparationTask implements MapRenderTask {
     }
 
     private Collection<RenderTask> createTasks(Collection<Vector2i> regions) {
-        ArrayList<WorldRegionRenderTask> regionTasks = new ArrayList<>(regions.size());
-        regions.forEach(region -> regionTasks.add(new WorldRegionRenderTask(map, region, force)));
+        ArrayList<WorldRegionUpdateTask> regionTasks = new ArrayList<>(regions.size());
+        regions.forEach(region -> regionTasks.add(new WorldRegionUpdateTask(map, region, force)));
 
-        regionTasks.sort(WorldRegionRenderTask.regionLastUpdatedComparator(WorldRegionRenderTask.defaultComparator(Vector2i.ZERO)));
+        regionTasks.sort(WorldRegionUpdateTask.regionLastUpdatedComparator(WorldRegionUpdateTask.defaultComparator(Vector2i.ZERO)));
 
         // save map before and after the whole update
         ArrayList<RenderTask> tasks = new ArrayList<>(regionTasks.size() + 2);
@@ -143,6 +141,13 @@ public class MapUpdatePreparationTask implements MapRenderTask {
                 .filter(regionBoundsFilter)
                 .filter(regionRadiusFilter)
                 .forEach(regions::add);
+
+        // no regions could mean the world might be configured incorrectly so we don't update anything to avoid accidentally deleting the entire map
+        if (regions.isEmpty()) {
+            Logger.global.logWarning("No regions found in world '%s', update-task for map '%s' will not be created."
+                    .formatted(map.getWorld().getId(), map.getId()));
+            return Collections.emptyList();
+        }
 
         // also add regions that have a "lastUpdateTime" timestamp in the map-state data
         // (they might have been rendered before but deleted now)

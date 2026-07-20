@@ -25,12 +25,14 @@
 package de.bluecolored.bluemap.common.rendermanager;
 
 import de.bluecolored.bluemap.common.debug.DebugDump;
+import de.bluecolored.bluemap.common.rendermanager.serialization.SerializableRenderTask;
 import de.bluecolored.bluemap.core.map.BmMap;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Objects;
 
-public class MapPurgeTask implements MapRenderTask {
+public final class MapPurgeTask implements MapRenderTask, SerializableRenderTask<MapPurgeTask, MapPurgeTask.Serialized> {
 
     @Getter private final BmMap map;
 
@@ -65,6 +67,7 @@ public class MapPurgeTask implements MapRenderTask {
         map.resetTextureGallery();
         map.getMapTileState().reset();
         map.getMapChunkState().reset();
+        map.getMapRegionState().reset();
     }
 
     @Override
@@ -96,6 +99,22 @@ public class MapPurgeTask implements MapRenderTask {
     @Override
     public String getDescription() {
         return "purging map '%s'".formatted(map.getId());
+    }
+
+    @Override
+    public Serialized serialize() {
+        return new Serialized(map);
+    }
+
+    @AllArgsConstructor
+    public static class Serialized implements SerializableRenderTask.Serialized<MapPurgeTask> {
+
+        private BmMap map;
+
+        public MapPurgeTask deserialize() {
+            return new MapPurgeTask(map);
+        }
+
     }
 
 }
