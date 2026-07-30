@@ -100,11 +100,10 @@ public class BlueMapService implements Closeable {
             if (!config.getWebappConfig().isUpdateSettingsFile()) {
                 webFilesManager.loadSettings();
                 webFilesManager.addFrom(config.getWebappConfig());
+                webFilesManager.addFrom(config.getMapConfigs());
             } else {
                 webFilesManager.setFrom(config.getWebappConfig());
-            }
-            for (String mapId : config.getMapConfigs().keySet()) {
-                webFilesManager.addMap(mapId);
+                webFilesManager.setFrom(config.getMapConfigs());
             }
             webFilesManager.saveSettings();
 
