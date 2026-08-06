@@ -22,18 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package de.bluecolored.bluemap.common.plugin;
+package de.bluecolored.bluemap.common.web.http;
 
-import de.bluecolored.bluemap.common.rendermanager.RenderTask;
-import lombok.Data;
-import org.jetbrains.annotations.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * Writes a {@link HttpResponse}'s body directly to the connection's output-stream, taking over
+ * writing to (and blocking) the calling thread until the body is fully written.
+ */
+@FunctionalInterface
+public interface HttpResponseStreamWriter extends Closeable {
 
-@Data
-public class TasksData {
+    void write(ChunkedOutputStream out) throws IOException;
 
-    private List<@Nullable RenderTask> renderTasks = new ArrayList<>();
+    @Override
+    default void close() throws IOException {}
 
 }
