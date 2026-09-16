@@ -44,8 +44,12 @@ public class JsonDataRequestHandler implements HttpRequestHandler {
     @Override
     public HttpResponse handle(HttpRequest request) {
         HttpResponse response = new HttpResponse(HttpStatusCode.OK);
-        response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Content-Type", "application/json");
+        response.setHeader("Cache-Control", "no-store");
+        response.setHeader("Cloudflare-CDN-Cache-Control", "no-store");
+        response.setHeader("CDN-Cache-Control", "no-store");
+        response.setHeader("Surrogate-Control", "no-store");
+
         response.setBody(dataSupplier.get());
         return response;
     }
