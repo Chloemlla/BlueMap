@@ -22,39 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package de.bluecolored.bluemap.common.rendermanager.serialization;
+package de.bluecolored.bluemap.common.config.storage;
 
-import de.bluecolored.bluemap.common.BlueMapService;
-import de.bluecolored.bluemap.core.map.BmMap;
-import de.bluecolored.bluenbt.NBTReader;
-import de.bluecolored.bluenbt.NBTWriter;
-import de.bluecolored.bluenbt.TagType;
-import de.bluecolored.bluenbt.TypeAdapter;
-import lombok.RequiredArgsConstructor;
+import de.bluecolored.bluemap.core.storage.sql.Database;
+import de.bluecolored.bluemap.core.storage.sql.commandset.CommandSet;
 
-import java.io.IOException;
-
-@RequiredArgsConstructor
-public class BmMapAdapter implements TypeAdapter<BmMap> {
-
-    private final BlueMapService blueMap;
-
-    @Override
-    public BmMap read(NBTReader reader) throws IOException {
-        String mapId = reader.nextString();
-        BmMap map = blueMap.getMaps().get(mapId);
-        if (map == null) throw new IOException("No map with id '" + mapId + "' loaded.");
-        return map;
-    }
-
-    @Override
-    public void write(BmMap value, NBTWriter writer) throws IOException {
-        writer.value(value.getId());
-    }
-
-    @Override
-    public TagType type() {
-        return TagType.STRING;
-    }
-
+@FunctionalInterface
+public
+interface CommandSetProvider {
+    CommandSet createCommandSet(Database database, String tablePrefix);
 }
